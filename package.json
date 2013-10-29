@@ -1,0 +1,11 @@
+{
+    "name":"amd-ish",
+    "description": "AMD style wrapper for node modules. Exposes factory via define.amd.factory for easy unit testing.",
+    "version": "0.0.1",
+    "dependencies": {
+        "callsite": "1.0.0"
+    },
+    "devDependencies": {
+
+    }
+}
