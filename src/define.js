@@ -1,4 +1,5 @@
 var callsite = require('callsite'),
+    capture,
     modules = {},
     path = require('path'),
     relPattern =  /^[./]/,
@@ -55,7 +56,8 @@ function resolveDependencies(dependencies, filename) {
     var resolved = [];
     if(Array.isArray(dependencies)) {
         dependencies.forEach(function (moduleId) {
-            resolved.push(resolveModule(normalizeModuleId(moduleId, filename)));
+            var result = resolveModule(normalizeModuleId(moduleId, filename));
+            resolved.push(result);
         });
     }
     return resolved;
@@ -67,13 +69,20 @@ function resolveModule(module) {
             return modules[module].result;
         } else {
             module = makeModule([module], module);
+
+            capture = module.id;
             module.result = require(module.id);
+            capture = undefined;
 
             return resolveModule(module.id);
         }
     } else {
         if (module.factory) {
             module.result = module.factory.apply(null, resolveDependencies(module.dependencies, module.filename));
+        }
+
+        if(capture) {
+            modules[capture] = module;
         }
         return module.result;
     }
