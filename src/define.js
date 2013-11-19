@@ -11,7 +11,7 @@ GLOBAL.define = function () {
 
 define.amd = {
     factory: function (moduleId) {
-        return resolveModule(normalizeModuleId(moduleId, callsite()[1].getFileName()));
+        return resolveModule(normalizeModuleId(moduleId, callsite()[1].getFileName())).factory;
     }
 };
 
@@ -55,8 +55,7 @@ function resolveDependencies(dependencies, filename) {
     var resolved = [];
     if(Array.isArray(dependencies)) {
         dependencies.forEach(function (moduleId) {
-            var result = resolveModule(normalizeModuleId(moduleId, filename));
-            resolved.push(result);
+            resolved.push(resolveModule(normalizeModuleId(moduleId, filename)).result);
         });
     }
     return resolved;
@@ -65,7 +64,7 @@ function resolveDependencies(dependencies, filename) {
 function resolveModule(module) {
     if(typeof module === 'string') {
         if(modules[module]) {
-            return modules[module].result;
+            return modules[module];
         } else {
             module = makeModule([module], module);
 
@@ -83,6 +82,6 @@ function resolveModule(module) {
         if(capture) {
             modules[capture] = module;
         }
-        return module.result;
+        return module;
     }
 }
