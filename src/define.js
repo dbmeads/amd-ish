@@ -11,8 +11,7 @@ GLOBAL.define = function () {
 
 define.amd = {
     factory: function (moduleId) {
-        moduleId = normalizeModuleId(moduleId, callsite()[1].getFileName());
-        return modules[moduleId] ? modules[moduleId].factory : undefined;
+        return resolveModule(normalizeModuleId(moduleId, callsite()[1].getFileName()));
     }
 };
 
