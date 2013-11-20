@@ -6,12 +6,12 @@ var callsite = require('callsite'),
     slice = Array.prototype.slice;
 
 GLOBAL.define = function () {
-    resolveModule(makeModule(slice.call(arguments), callsite()[1].getFileName()));
+    execModule(resolveModule(slice.call(arguments), callsite()[1].getFileName()));
 };
 
 define.amd = {
     factory: function (moduleId) {
-        return resolveModule(normalizeModuleId(moduleId, callsite()[1].getFileName())).factory;
+        return execModule(normalizeModuleId(moduleId, callsite()[1].getFileName())).factory;
     }
 };
 
@@ -25,7 +25,7 @@ function normalizeModuleId(moduleId, filename) {
     return moduleId;
 }
 
-function makeModule(args, filename) {
+function resolveModule(args, filename) {
     var module = {
         filename: filename,
         id: filename
@@ -55,24 +55,24 @@ function resolveDependencies(dependencies, filename) {
     var resolved = [];
     if(Array.isArray(dependencies)) {
         dependencies.forEach(function (moduleId) {
-            resolved.push(resolveModule(normalizeModuleId(moduleId, filename)).result);
+            resolved.push(execModule(normalizeModuleId(moduleId, filename)).result);
         });
     }
     return resolved;
 }
 
-function resolveModule(module) {
+function execModule(module) {
     if(typeof module === 'string') {
         if(modules[module]) {
             return modules[module];
         } else {
-            module = makeModule([module], module);
+            module = resolveModule([module], module);
 
             capture = module.id;
             module.result = require(module.id);
             capture = undefined;
 
-            return resolveModule(module.id);
+            return execModule(module.id);
         }
     } else {
         if (module.factory) {
