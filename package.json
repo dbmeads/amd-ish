@@ -1,12 +1,14 @@
 {
-    "name":"amd-ish",
-    "description": "AMD style wrapper for node modules. Exposes factory via define.amd.factory for easy unit testing.",
-    "version": "0.0.3",
-    "main": "src/define",
-    "dependencies": {
-        "callsite": "1.0.0"
-    },
-    "devDependencies": {
-
-    }
+  "name": "amd-ish",
+  "description": "AMD style wrapper for node modules. Exposes factory via define.amd.factory for easy unit testing.",
+  "version": "0.0.4",
+  "main": "src/define",
+  "dependencies": {
+    "callsite": "1.0.0"
+  },
+  "devDependencies": {
+    "grunt": "0.4.1",
+    "grunt-jasmine-node": "0.1.0",
+    "grunt-contrib-jshint": "0.7.2"
+  }
 }

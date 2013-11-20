@@ -2,7 +2,7 @@ var callsite = require('callsite'),
     capture,
     modules = {},
     path = require('path'),
-    relPattern =  /^[./]/,
+    relPattern = /^[./]/,
     slice = Array.prototype.slice;
 
 GLOBAL.define = function () {
@@ -11,14 +11,14 @@ GLOBAL.define = function () {
 
 define.amd = {
     factory: function (moduleId) {
-        return execModule(normalizeModuleId(moduleId, callsite()[1].getFileName())).factory;
+        return resolveModule(normalizeModuleId(moduleId, callsite()[1].getFileName())).factory;
     }
 };
 
 function normalizeModuleId(moduleId, filename) {
-    if(relPattern.test(moduleId)) {
+    if (relPattern.test(moduleId)) {
         moduleId = path.normalize(path.resolve(path.dirname(filename), moduleId));
-        if(!path.extname('.js')) {
+        if (!path.extname('.js')) {
             moduleId += '.js';
         }
     }
@@ -31,7 +31,7 @@ function resolveArgs(filename, args) {
         id: filename
     };
 
-    args.forEach(function (arg) {
+    (args||[]).forEach(function (arg) {
         switch (typeof arg) {
             case 'function':
                 module.factory = arg;
@@ -52,42 +52,39 @@ function resolveArgs(filename, args) {
 function resolveModule(filename, args) {
     var module = resolveArgs(filename, args);
 
-    modules[module.id] = module;
+    if (modules[module.id] && !capture) {
+        module = modules[module.id];
+    } else {
+        modules[module.id] = modules[module.filename] = module;
+    }
 
     return module;
 }
 
 function resolveDependencies(dependencies, filename) {
     var resolved = [];
-    if(Array.isArray(dependencies)) {
+    if (Array.isArray(dependencies)) {
         dependencies.forEach(function (moduleId) {
-            resolved.push(execModule(normalizeModuleId(moduleId, filename)).result);
+            resolved.push(execModule(resolveModule(normalizeModuleId(moduleId, filename))).result);
         });
     }
     return resolved;
 }
 
 function execModule(module) {
-    if(typeof module === 'string') {
-        if(modules[module]) {
-            return modules[module];
+    if (!module.result || capture) {
+        if (module.factory) {
+            module.result = module.factory.apply(null, resolveDependencies(module.dependencies, module.filename));
+            if (capture) {
+                modules[capture] = module;
+            }
+            return module;
         } else {
-            module = resolveModule(module, [module]);
-
             capture = module.id;
             module.result = require(module.id);
             capture = undefined;
-
-            return execModule(module.id);
+            return resolveModule(module.id);
         }
-    } else {
-        if (module.factory) {
-            module.result = module.factory.apply(null, resolveDependencies(module.dependencies, module.filename));
-        }
-
-        if(capture) {
-            modules[capture] = module;
-        }
-        return module;
     }
+    return module;
 }
