@@ -6,7 +6,7 @@ var callsite = require('callsite'),
     slice = Array.prototype.slice;
 
 GLOBAL.define = function () {
-    execModule(resolveModule(slice.call(arguments), callsite()[1].getFileName()));
+    execModule(resolveModule(callsite()[1].getFileName(), slice.call(arguments)));
 };
 
 define.amd = {
@@ -25,7 +25,7 @@ function normalizeModuleId(moduleId, filename) {
     return moduleId;
 }
 
-function resolveModule(args, filename) {
+function resolveArgs(filename, args) {
     var module = {
         filename: filename,
         id: filename
@@ -45,6 +45,12 @@ function resolveModule(args, filename) {
                 }
         }
     });
+
+    return module;
+}
+
+function resolveModule(filename, args) {
+    var module = resolveArgs(filename, args);
 
     modules[module.id] = module;
 
@@ -66,7 +72,7 @@ function execModule(module) {
         if(modules[module]) {
             return modules[module];
         } else {
-            module = resolveModule([module], module);
+            module = resolveModule(module, [module]);
 
             capture = module.id;
             module.result = require(module.id);
