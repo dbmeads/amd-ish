@@ -1,4 +1,5 @@
-var callsite = require('callsite'),
+var aka,
+    callsite = require('callsite'),
     modules = {},
     path = require('path'),
     relPattern = /^[./]/,
@@ -15,7 +16,7 @@ define.amd = {
 };
 
 function normalizeModuleId(moduleId, filename) {
-    if (relPattern.test(moduleId)) {
+    if(relPattern.test(moduleId)) {
         moduleId = path.normalize(path.resolve(path.dirname(filename), moduleId));
         if (!path.extname('.js')) {
             moduleId += '.js';
@@ -27,7 +28,7 @@ function normalizeModuleId(moduleId, filename) {
 function resolveModuleFromArgs(filename, args) {
     var module = {
         filename: filename,
-        id: filename
+        id: aka || filename
     };
 
     args.forEach(function (arg) {
@@ -51,7 +52,7 @@ function resolveModuleFromArgs(filename, args) {
 }
 
 function resolveModule(moduleId) {
-    if(!modules[moduleId]) {
+    if (!modules[moduleId]) {
         requireModule(moduleId);
     }
     return modules[moduleId];
@@ -72,11 +73,13 @@ function requireModule(moduleId) {
     var module = modules[moduleId] = {
         id: moduleId
     };
+    aka = moduleId;
     module.result = require(moduleId);
+    aka = undefined;
 }
 
 function execFactory(module) {
-    if(module.factory && !module.hasOwnProperty('result')) {
+    if (module.factory && !module.hasOwnProperty('result')) {
         module.result = module.factory.apply(null, resolveDependencies(module.dependencies, module.filename));
     }
     return module;

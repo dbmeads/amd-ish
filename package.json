@@ -1,7 +1,7 @@
 {
   "name": "amd-ish",
   "description": "AMD style wrapper for node modules. Exposes factory via define.amd.factory for easy unit testing.",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "main": "src/define",
   "dependencies": {
     "callsite": "1.0.0"
@@ -10,6 +10,7 @@
     "grunt": "0.4.1",
     "grunt-jasmine-node": "0.1.0",
     "grunt-contrib-jshint": "0.7.2",
-    "grunt-contrib-watch": "~0.3.1"
+    "grunt-contrib-watch": "~0.3.1",
+    "jasmine-injector": "0.0.3-rc.4"
   }
 }

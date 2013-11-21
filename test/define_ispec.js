@@ -17,9 +17,15 @@ describe('define', function () {
         expect(callback).toHaveBeenCalledWith(require('util'));
     });
 
-    it('should be able to inject a defined module result', function () {
+    it('should be able to inject a local defined module result', function () {
         define(['./modules/module1'], callback);
 
         expect(callback).toHaveBeenCalledWith('hi');
+    });
+
+    it('should be able to inject a defined module result', function() {
+        define(['jasmine-injector'], callback);
+
+        expect(callback).toHaveBeenCalledWith(jasmine.any(Function));
     });
 });
