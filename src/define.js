@@ -1,12 +1,11 @@
 var callsite = require('callsite'),
-    capture,
     modules = {},
     path = require('path'),
     relPattern = /^[./]/,
     slice = Array.prototype.slice;
 
 GLOBAL.define = function () {
-    execModule(resolveModule(callsite()[1].getFileName(), slice.call(arguments)));
+    execFactory(resolveModuleFromArgs(callsite()[1].getFileName(), slice.call(arguments)));
 };
 
 define.amd = {
@@ -25,13 +24,13 @@ function normalizeModuleId(moduleId, filename) {
     return moduleId;
 }
 
-function resolveArgs(filename, args) {
+function resolveModuleFromArgs(filename, args) {
     var module = {
         filename: filename,
         id: filename
     };
 
-    (args||[]).forEach(function (arg) {
+    args.forEach(function (arg) {
         switch (typeof arg) {
             case 'function':
                 module.factory = arg;
@@ -46,45 +45,39 @@ function resolveArgs(filename, args) {
         }
     });
 
+    modules[module.id] = modules[filename] = module;
+
     return module;
 }
 
-function resolveModule(filename, args) {
-    var module = resolveArgs(filename, args);
-
-    if (modules[module.id] && !capture) {
-        module = modules[module.id];
-    } else {
-        modules[module.id] = modules[module.filename] = module;
+function resolveModule(moduleId) {
+    if(!modules[moduleId]) {
+        requireModule(moduleId);
     }
-
-    return module;
+    return modules[moduleId];
 }
 
 function resolveDependencies(dependencies, filename) {
     var resolved = [];
     if (Array.isArray(dependencies)) {
         dependencies.forEach(function (moduleId) {
-            resolved.push(execModule(resolveModule(normalizeModuleId(moduleId, filename))).result);
+            var module = resolveModule(normalizeModuleId(moduleId, filename));
+            resolved.push(execFactory(module).result);
         });
     }
     return resolved;
 }
 
-function execModule(module) {
-    if (!module.result || capture) {
-        if (module.factory) {
-            module.result = module.factory.apply(null, resolveDependencies(module.dependencies, module.filename));
-            if (capture) {
-                modules[capture] = module;
-            }
-            return module;
-        } else {
-            capture = module.id;
-            module.result = require(module.id);
-            capture = undefined;
-            return resolveModule(module.id);
-        }
+function requireModule(moduleId) {
+    var module = modules[moduleId] = {
+        id: moduleId
+    };
+    module.result = require(moduleId);
+}
+
+function execFactory(module) {
+    if(module.factory && !module.hasOwnProperty('result')) {
+        module.result = module.factory.apply(null, resolveDependencies(module.dependencies, module.filename));
     }
     return module;
 }
