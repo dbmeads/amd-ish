@@ -1,17 +1,25 @@
 var aka,
     callsite = require('callsite'),
+    factory = false,
     modules = {},
     path = require('path'),
     relPattern = /^[./]/,
     slice = Array.prototype.slice;
 
 GLOBAL.define = function () {
-    execFactory(resolveModuleFromArgs(callsite()[1].getFileName(), slice.call(arguments)));
+    var module = resolveModuleFromArgs(callsite()[1].getFileName(), slice.call(arguments));
+    if(!factory) {
+        execFactory(module);
+    }
+    return module;
 };
 
 define.amd = {
     factory: function (moduleId) {
-        return resolveModule(normalizeModuleId(moduleId, callsite()[1].getFileName())).factory;
+        factory = true;
+        var module = resolveModule(normalizeModuleId(moduleId, callsite()[1].getFileName())).factory;
+        factory = false;
+        return module;
     }
 };
 

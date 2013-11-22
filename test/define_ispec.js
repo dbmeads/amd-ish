@@ -28,4 +28,10 @@ describe('define', function () {
 
         expect(callback).toHaveBeenCalledWith(jasmine.any(Function));
     });
+
+    it('should not execute the factory when called from define.amd.factory', function() {
+        var factory = define.amd.factory('./modules/module2');
+
+        expect(factory()).toBe(1);
+    });
 });
