@@ -23,15 +23,36 @@ describe('define', function () {
         expect(callback).toHaveBeenCalledWith('hi');
     });
 
-    it('should be able to inject a defined module result', function() {
+    it('should be able to inject a defined module result', function () {
         define(['jasmine-injector'], callback);
 
         expect(callback).toHaveBeenCalledWith(jasmine.any(Function));
     });
 
-    it('should not execute the factory when called from define.amd.factory', function() {
+    it('should not execute the factory when called from define.amd.factory', function () {
         var factory = define.amd.factory('./modules/module2');
 
         expect(factory()).toBe(1);
     });
+
+    describe('amd.register', function () {
+        beforeEach(function () {
+            define.amd.register('jasmine-injector', 'Awesome!');
+        });
+
+        it('should register a result for a module', function () {
+            define(['jasmine-injector'], callback);
+
+            expect(callback).toHaveBeenCalledWith('Awesome!');
+        });
+
+        it('should allow for unregistering modules (i.e.: clearing cache)', function () {
+            define.amd.unregister('jasmine-injector');
+
+            define(['jasmine-injector'], callback);
+
+            expect(callback).toHaveBeenCalledWith(jasmine.any(Function));
+        });
+    });
+
 });

@@ -2,13 +2,14 @@ var aka,
     callsite = require('callsite'),
     factory = false,
     modules = {},
+    mocks = {},
     path = require('path'),
-    relPattern = /^[./]/,
+    relPattern = /^[.]/,
     slice = Array.prototype.slice;
 
 GLOBAL.define = function () {
     var module = resolveModuleFromArgs(callsite()[1].getFileName(), slice.call(arguments));
-    if(!factory) {
+    if (!factory) {
         execFactory(module);
     }
     return module;
@@ -20,11 +21,31 @@ define.amd = {
         var module = resolveModule(normalizeModuleId(moduleId, callsite()[1].getFileName())).factory;
         factory = false;
         return module;
+    },
+    register: function (moduleId, result) {
+        moduleId = normalizeModuleId(moduleId, callsite()[1].getFileName());
+
+        var module = {
+            id: moduleId,
+            filename: moduleId,
+            result: result
+        };
+
+        mocks[module.id] = module;
+
+        return module;
+    },
+    unregister: function (moduleId) {
+        mocks[normalizeModuleId(moduleId, callsite()[1].getFileName())] = undefined;
     }
 };
 
+function isRelative(moduleId) {
+    return relPattern.test(moduleId);
+}
+
 function normalizeModuleId(moduleId, filename) {
-    if(relPattern.test(moduleId)) {
+    if (isRelative(moduleId)) {
         moduleId = path.normalize(path.resolve(path.dirname(filename), moduleId));
         if (!path.extname('.js')) {
             moduleId += '.js';
@@ -56,14 +77,14 @@ function resolveModuleFromArgs(filename, args) {
 
     modules[module.id] = modules[filename] = module;
 
-    return module;
+    return mocks[module.id] || modules[module.id];
 }
 
 function resolveModule(moduleId) {
     if (!modules[moduleId]) {
         requireModule(moduleId);
     }
-    return modules[moduleId];
+    return mocks[moduleId] || modules[moduleId];
 }
 
 function resolveDependencies(dependencies, filename) {
